@@ -1,4 +1,4 @@
-import {
+ import {
   Entity,
   PrimaryGeneratedColumn,
   Column,
@@ -18,11 +18,11 @@ export class InventoryTransaction {
   @JoinColumn({ name: 'inventory_item_id' })
   inventoryItem: InventoryItem;
 
-  @Column({ type: 'integer', name: 'quantity_change' })
-  quantityChange: number;
+  @Column({ type: 'integer' })
+  quantity: number;
 
-  @Column({ type: 'text', name: 'transaction_type' })
-  transactionType: string;
+  @Column({ type: 'text', name: 'transaction_type', enum: ['IN', 'OUT'] })
+  type: 'IN' | 'OUT';
 
   @ManyToOne(() => User, (user) => user.inventoryTransactions, { nullable: true })
   @JoinColumn({ name: 'user_id' })

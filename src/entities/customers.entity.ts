@@ -22,6 +22,9 @@ export class Customer {
   @Column({ type: 'text', nullable: true })
   address: string;
 
+  @Column({ type: 'text', unique: true })
+  email: string;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

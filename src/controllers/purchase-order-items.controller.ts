@@ -71,6 +71,12 @@ export class PurchaseOrderItemsController {
   async create(
     @Body() purchaseOrderItem: Partial<PurchaseOrderItem>,
   ): Promise<PurchaseOrderItem> {
+    if (purchaseOrderItem.quantity !== undefined && purchaseOrderItem.quantity <= 0) {
+      throw new HttpException('Quantity must be positive', HttpStatus.BAD_REQUEST);
+    }
+    if (purchaseOrderItem.unitPrice !== undefined && purchaseOrderItem.unitPrice <= 0) {
+      throw new HttpException('Unit price must be positive', HttpStatus.BAD_REQUEST);
+    }
     return this.purchaseOrderItemsService.create(purchaseOrderItem);
   }
 
@@ -86,6 +92,12 @@ export class PurchaseOrderItemsController {
         'Purchase order item not found',
         HttpStatus.NOT_FOUND,
       );
+    }
+    if (purchaseOrderItem.quantity !== undefined && purchaseOrderItem.quantity <= 0) {
+      throw new HttpException('Quantity must be positive', HttpStatus.BAD_REQUEST);
+    }
+    if (purchaseOrderItem.unitPrice !== undefined && purchaseOrderItem.unitPrice <= 0) {
+      throw new HttpException('Unit price must be positive', HttpStatus.BAD_REQUEST);
     }
     return this.purchaseOrderItemsService.update(+id, purchaseOrderItem);
   }

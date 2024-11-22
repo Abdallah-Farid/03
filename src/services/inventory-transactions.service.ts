@@ -42,7 +42,7 @@ export class InventoryTransactionsService {
     });
   }
 
-  async findByType(type: string): Promise<InventoryTransaction[]> {
+  async findByType(type: 'IN' | 'OUT'): Promise<InventoryTransaction[]> {
     return this.transactionRepository.find({
       where: { type },
       relations: ['inventoryItem'],

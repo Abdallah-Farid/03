@@ -1,6 +1,6 @@
 import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between } from 'typeorm';
+import { Repository, Between, LessThan } from 'typeorm';
 import { PurchaseOrder } from '../entities/purchase-orders.entity';
 
 @Injectable()
@@ -42,7 +42,7 @@ export class PurchaseOrdersService {
     });
   }
 
-  async findByStatus(status: string): Promise<PurchaseOrder[]> {
+  async findByStatus(status: 'Pending' | 'Completed' | 'Cancelled'): Promise<PurchaseOrder[]> {
     return this.purchaseOrderRepository.find({
       where: { status },
       relations: ['supplier', 'purchaseOrderItems'],
@@ -66,14 +66,17 @@ export class PurchaseOrdersService {
     await this.purchaseOrderRepository.delete(id);
   }
 
-  async updateStatus(id: number, status: string): Promise<PurchaseOrder> {
+  async updateStatus(
+    id: number,
+    status: 'Pending' | 'Completed' | 'Cancelled',
+  ): Promise<PurchaseOrder> {
     const purchaseOrder = await this.findOne(id);
     if (!purchaseOrder) {
       throw new HttpException('Purchase order not found', HttpStatus.NOT_FOUND);
     }
 
     purchaseOrder.status = status;
-    if (status === 'RECEIVED') {
+    if (status === 'Completed') {
       purchaseOrder.receivedDate = new Date();
     }
     return this.purchaseOrderRepository.save(purchaseOrder);
@@ -94,7 +97,7 @@ export class PurchaseOrdersService {
   async findPendingOrders(): Promise<PurchaseOrder[]> {
     return this.purchaseOrderRepository.find({
       where: {
-        status: 'PENDING',
+        status: 'Pending',
       },
       relations: ['supplier', 'purchaseOrderItems'],
       order: {
@@ -108,7 +111,7 @@ export class PurchaseOrdersService {
     return this.purchaseOrderRepository.find({
       where: {
         expectedDeliveryDate: LessThan(today),
-        status: 'PENDING',
+        status: 'Pending',
       },
       relations: ['supplier', 'purchaseOrderItems'],
       order: {

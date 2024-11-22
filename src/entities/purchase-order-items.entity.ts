@@ -13,7 +13,7 @@ export class PurchaseOrderItem {
   @PrimaryGeneratedColumn({ type: 'bigint' })
   id: number;
 
-  @ManyToOne(() => PurchaseOrder, (purchaseOrder) => purchaseOrder.items)
+  @ManyToOne(() => PurchaseOrder, (purchaseOrder) => purchaseOrder.purchaseOrderItems)
   @JoinColumn({ name: 'purchase_order_id' })
   purchaseOrder: PurchaseOrder;
 
@@ -23,6 +23,9 @@ export class PurchaseOrderItem {
 
   @Column({ type: 'integer' })
   quantity: number;
+
+  @Column({ type: 'numeric', name: 'unit_price', precision: 12, scale: 2 })
+  unitPrice: number;
 
   @Column({ type: 'numeric', precision: 12, scale: 2 })
   price: number;

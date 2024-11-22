@@ -19,6 +19,7 @@ import { Notification } from './entities/notifications.entity';
 import { InventoryTransaction } from './entities/inventory-transactions.entity';
 
 // Module imports
+import { AuthModule } from './modules/auth.module';
 import { UsersModule } from './modules/users.module';
 import { RolesModule } from './modules/roles.module';
 import { PermissionsModule } from './modules/permissions.module';
@@ -31,6 +32,7 @@ import { InventoryTransactionsModule } from './modules/inventory-transactions.mo
 import { NotificationsModule } from './modules/notifications.module';
 import { PurchaseOrdersModule } from './modules/purchase-orders.module';
 import { PurchaseOrderItemsModule } from './modules/purchase-order-items.module';
+import { SeederModule } from './modules/seeder.module';
 
 @Module({
   imports: [
@@ -54,16 +56,12 @@ import { PurchaseOrderItemsModule } from './modules/purchase-order-items.module'
           Notification,
           InventoryTransaction,
         ],
-        synchronize: false,
-        ssl: {
-          rejectUnauthorized: false,
-        },
-        extra: {
-          max: 20,
-        },
+        synchronize: true,
+        logging: true,
       }),
       inject: [ConfigService],
     }),
+    AuthModule,
     UsersModule,
     RolesModule,
     PermissionsModule,
@@ -76,6 +74,7 @@ import { PurchaseOrderItemsModule } from './modules/purchase-order-items.module'
     NotificationsModule,
     PurchaseOrdersModule,
     PurchaseOrderItemsModule,
+    SeederModule,
   ],
   controllers: [AppController],
   providers: [AppService],

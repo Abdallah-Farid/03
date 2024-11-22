@@ -39,6 +39,12 @@ export class InventoryItem {
   @Column({ type: 'numeric', precision: 12, scale: 2, nullable: true })
   price: number;
 
+  @Column({ type: 'integer', default: 0, name: 'current_stock' })
+  currentStock: number;
+
+  @Column({ type: 'numeric', precision: 12, scale: 2, default: 0 })
+  unitPrice: number;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 

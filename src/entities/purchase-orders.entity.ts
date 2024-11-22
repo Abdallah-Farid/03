@@ -29,6 +29,12 @@ export class PurchaseOrder {
   @Column({ type: 'numeric', name: 'total_amount', precision: 12, scale: 2, default: 0 })
   totalAmount: number;
 
+  @Column({ type: 'timestamp', nullable: true, name: 'expected_delivery_date' })
+  expectedDeliveryDate: Date;
+
+  @Column({ type: 'timestamp', nullable: true, name: 'received_date' })
+  receivedDate: Date;
+
   @CreateDateColumn({ name: 'created_at' })
   createdAt: Date;
 
@@ -36,5 +42,5 @@ export class PurchaseOrder {
   updatedAt: Date;
 
   @OneToMany(() => PurchaseOrderItem, (item) => item.purchaseOrder)
-  items: PurchaseOrderItem[];
+  purchaseOrderItems: PurchaseOrderItem[];
 }

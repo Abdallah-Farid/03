@@ -37,6 +37,9 @@ export class PermissionsController {
 
   @Post()
   async create(@Body() permission: Partial<Permission>): Promise<Permission> {
+    if (!permission.name || permission.name.trim() === '') {
+      throw new HttpException('Permission name is required', HttpStatus.BAD_REQUEST);
+    }
     return this.permissionsService.create(permission);
   }
 
@@ -48,6 +51,9 @@ export class PermissionsController {
     const existingPermission = await this.permissionsService.findOne(+id);
     if (!existingPermission) {
       throw new HttpException('Permission not found', HttpStatus.NOT_FOUND);
+    }
+    if (permission.name !== undefined && permission.name.trim() === '') {
+      throw new HttpException('Permission name cannot be empty', HttpStatus.BAD_REQUEST);
     }
     return this.permissionsService.update(+id, permission);
   }

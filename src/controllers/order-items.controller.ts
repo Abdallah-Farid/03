@@ -50,6 +50,12 @@ export class OrderItemsController {
 
   @Post()
   async create(@Body() orderItem: Partial<OrderItem>): Promise<OrderItem> {
+    if (orderItem.quantity !== undefined && orderItem.quantity <= 0) {
+      throw new HttpException('Quantity must be positive', HttpStatus.BAD_REQUEST);
+    }
+    if (orderItem.unitPrice !== undefined && orderItem.unitPrice <= 0) {
+      throw new HttpException('Unit price must be positive', HttpStatus.BAD_REQUEST);
+    }
     return this.orderItemsService.create(orderItem);
   }
 
@@ -62,6 +68,12 @@ export class OrderItemsController {
     if (!existingOrderItem) {
       throw new HttpException('Order item not found', HttpStatus.NOT_FOUND);
     }
+    if (orderItem.quantity !== undefined && orderItem.quantity <= 0) {
+      throw new HttpException('Quantity must be positive', HttpStatus.BAD_REQUEST);
+    }
+    if (orderItem.unitPrice !== undefined && orderItem.unitPrice <= 0) {
+      throw new HttpException('Unit price must be positive', HttpStatus.BAD_REQUEST);
+    }
     return this.orderItemsService.update(+id, orderItem);
   }
 
@@ -70,6 +82,9 @@ export class OrderItemsController {
     @Param('id') id: string,
     @Body('quantity') quantity: number,
   ): Promise<OrderItem> {
+    if (quantity <= 0) {
+      throw new HttpException('Quantity must be positive', HttpStatus.BAD_REQUEST);
+    }
     return this.orderItemsService.updateQuantity(+id, quantity);
   }
 

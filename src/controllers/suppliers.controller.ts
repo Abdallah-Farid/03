@@ -31,6 +31,9 @@ export class SuppliersController {
   async findByPurchaseOrderTotal(
     @Query('minTotal') minTotal: string,
   ): Promise<Supplier[]> {
+    if (!minTotal || isNaN(+minTotal) || +minTotal < 0) {
+      throw new HttpException('Valid minimum total is required', HttpStatus.BAD_REQUEST);
+    }
     return this.suppliersService.findByPurchaseOrderTotal(+minTotal);
   }
 
@@ -45,6 +48,9 @@ export class SuppliersController {
 
   @Post()
   async create(@Body() supplier: Partial<Supplier>): Promise<Supplier> {
+    if (!supplier.name || supplier.name.trim() === '') {
+      throw new HttpException('Supplier name is required', HttpStatus.BAD_REQUEST);
+    }
     return this.suppliersService.create(supplier);
   }
 
@@ -56,6 +62,9 @@ export class SuppliersController {
     const existingSupplier = await this.suppliersService.findOne(+id);
     if (!existingSupplier) {
       throw new HttpException('Supplier not found', HttpStatus.NOT_FOUND);
+    }
+    if (supplier.name !== undefined && supplier.name.trim() === '') {
+      throw new HttpException('Supplier name cannot be empty', HttpStatus.BAD_REQUEST);
     }
     return this.suppliersService.update(+id, supplier);
   }

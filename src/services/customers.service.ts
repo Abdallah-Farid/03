@@ -47,9 +47,17 @@ export class CustomersService {
   async findByOrderTotal(minTotal: number): Promise<Customer[]> {
     return this.customerRepository
       .createQueryBuilder('customer')
+      .select('customer')
       .leftJoinAndSelect('customer.orders', 'order')
-      .having('SUM(order.total) >= :minTotal', { minTotal })
+      .addSelect('SUM(order.totalAmount)', 'total_amount')
       .groupBy('customer.id')
+      .addGroupBy('customer.name')
+      .addGroupBy('customer.contactInfo')
+      .addGroupBy('customer.address')
+      .addGroupBy('customer.email')
+      .addGroupBy('customer.createdAt')
+      .addGroupBy('customer.updatedAt')
+      .having('SUM(order.totalAmount) >= :minTotal', { minTotal })
       .getMany();
   }
 }

@@ -56,7 +56,7 @@ export class SuppliersService {
     return this.supplierRepository
       .createQueryBuilder('supplier')
       .leftJoinAndSelect('supplier.purchaseOrders', 'po')
-      .having('SUM(po.total) >= :minTotal', { minTotal })
+      .having('SUM(po.totalAmount) >= :minTotal', { minTotal })
       .groupBy('supplier.id')
       .getMany();
   }

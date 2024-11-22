@@ -33,6 +33,9 @@ export class RolesController {
 
   @Post()
   async create(@Body() role: Partial<Role>): Promise<Role> {
+    if (!role.name || role.name.trim() === '') {
+      throw new HttpException('Role name is required', HttpStatus.BAD_REQUEST);
+    }
     return this.rolesService.create(role);
   }
 
@@ -44,6 +47,9 @@ export class RolesController {
     const existingRole = await this.rolesService.findOne(+id);
     if (!existingRole) {
       throw new HttpException('Role not found', HttpStatus.NOT_FOUND);
+    }
+    if (role.name !== undefined && role.name.trim() === '') {
+      throw new HttpException('Role name cannot be empty', HttpStatus.BAD_REQUEST);
     }
     return this.rolesService.update(+id, role);
   }
@@ -65,6 +71,14 @@ export class RolesController {
     const role = await this.rolesService.findOne(+id);
     if (!role) {
       throw new HttpException('Role not found', HttpStatus.NOT_FOUND);
+    }
+
+    if (!body.permissionIds || !Array.isArray(body.permissionIds) || body.permissionIds.length === 0) {
+      throw new HttpException('Permission IDs must be a non-empty array', HttpStatus.BAD_REQUEST);
+    }
+
+    if (!body.action || !['add', 'remove'].includes(body.action)) {
+      throw new HttpException('Action must be either "add" or "remove"', HttpStatus.BAD_REQUEST);
     }
 
     if (body.action === 'add') {

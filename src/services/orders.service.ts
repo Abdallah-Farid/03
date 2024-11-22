@@ -2,12 +2,22 @@ import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, MoreThan, LessThan } from 'typeorm';
 import { Order } from '../entities/orders.entity';
+import { Customer } from '../entities/customers.entity';
+import { OrderItem } from '../entities/order-items.entity';
+import { InventoryItem } from '../entities/inventory-items.entity';
+import { CreateOrderDto } from '../dto/create-order.dto';
 
 @Injectable()
 export class OrdersService {
   constructor(
     @InjectRepository(Order)
     private readonly orderRepository: Repository<Order>,
+    @InjectRepository(Customer)
+    private readonly customerRepository: Repository<Customer>,
+    @InjectRepository(OrderItem)
+    private readonly orderItemRepository: Repository<OrderItem>,
+    @InjectRepository(InventoryItem)
+    private readonly inventoryItemRepository: Repository<InventoryItem>,
   ) {}
 
   async findAll(): Promise<Order[]> {
@@ -30,9 +40,65 @@ export class OrdersService {
     });
   }
 
-  async create(order: Partial<Order>): Promise<Order> {
-    const newOrder = this.orderRepository.create(order);
-    return this.orderRepository.save(newOrder);
+  async create(orderDto: CreateOrderDto): Promise<Order> {
+    // Find the customer
+    const customer = await this.customerRepository.findOne({
+      where: { id: orderDto.customerId },
+    });
+
+    if (!customer) {
+      throw new HttpException('Customer not found', HttpStatus.NOT_FOUND);
+    }
+
+    // Create the order with customer
+    const newOrder = this.orderRepository.create({
+      customer,
+      status: orderDto.status || 'Pending',
+    });
+
+    // Save the order first
+    const savedOrder = await this.orderRepository.save(newOrder);
+
+    // Process order items
+    if (orderDto.orderItems && orderDto.orderItems.length > 0) {
+      const orderItems = await Promise.all(
+        orderDto.orderItems.map(async (itemDto) => {
+          // Find the inventory item
+          const inventoryItem = await this.inventoryItemRepository.findOne({
+            where: { id: itemDto.inventoryItemId },
+          });
+
+          if (!inventoryItem) {
+            throw new HttpException(
+              `Inventory item ${itemDto.inventoryItemId} not found`,
+              HttpStatus.NOT_FOUND,
+            );
+          }
+
+          // Create order item
+          const orderItem = this.orderItemRepository.create({
+            order: savedOrder,
+            inventoryItem,
+            quantity: itemDto.quantity,
+            unitPrice: inventoryItem.unitPrice,
+            price: inventoryItem.price,
+            totalPrice: itemDto.quantity * inventoryItem.unitPrice,
+          });
+
+          return this.orderItemRepository.save(orderItem);
+        }),
+      );
+
+      // Update order's total amount
+      savedOrder.totalAmount = orderItems.reduce(
+        (total, item) => total + item.totalPrice,
+        0,
+      );
+      await this.orderRepository.save(savedOrder);
+    }
+
+    // Return the order with relations
+    return this.findOne(savedOrder.id);
   }
 
   async update(id: number, order: Partial<Order>): Promise<Order> {
@@ -53,7 +119,7 @@ export class OrdersService {
     });
   }
 
-  async findByStatus(status: string): Promise<Order[]> {
+  async findByStatus(status: 'Pending' | 'Completed' | 'Cancelled'): Promise<Order[]> {
     return this.orderRepository.find({
       where: { status },
       relations: ['customer', 'orderItems'],
@@ -66,11 +132,11 @@ export class OrdersService {
   ): Promise<Order[]> {
     const where: any = {};
     if (minAmount !== undefined && maxAmount !== undefined) {
-      where.total = Between(minAmount, maxAmount);
+      where.totalAmount = Between(minAmount, maxAmount);
     } else if (minAmount !== undefined) {
-      where.total = MoreThan(minAmount);
+      where.totalAmount = MoreThan(minAmount);
     } else if (maxAmount !== undefined) {
-      where.total = LessThan(maxAmount);
+      where.totalAmount = LessThan(maxAmount);
     }
 
     return this.orderRepository.find({
@@ -79,7 +145,10 @@ export class OrdersService {
     });
   }
 
-  async updateStatus(id: number, status: string): Promise<Order> {
+  async updateStatus(
+    id: number,
+    status: 'Pending' | 'Completed' | 'Cancelled',
+  ): Promise<Order> {
     const order = await this.findOne(id);
     if (!order) {
       throw new HttpException('Order not found', HttpStatus.NOT_FOUND);

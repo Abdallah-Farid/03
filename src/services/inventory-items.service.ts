@@ -12,21 +12,21 @@ export class InventoryItemsService {
 
   async findAll(): Promise<InventoryItem[]> {
     return this.inventoryItemRepository.find({
-      relations: ['supplier', 'orderItems', 'purchaseOrderItems', 'inventoryTransactions'],
+      relations: ['supplier', 'orderItems', 'purchaseOrderItems', 'transactions'],
     });
   }
 
   async findOne(id: number): Promise<InventoryItem> {
     return this.inventoryItemRepository.findOne({
       where: { id },
-      relations: ['supplier', 'orderItems', 'purchaseOrderItems', 'inventoryTransactions'],
+      relations: ['supplier', 'orderItems', 'purchaseOrderItems', 'transactions'],
     });
   }
 
   async findBySupplier(supplierId: number): Promise<InventoryItem[]> {
     return this.inventoryItemRepository.find({
       where: { supplier: { id: supplierId } },
-      relations: ['supplier', 'orderItems', 'purchaseOrderItems', 'inventoryTransactions'],
+      relations: ['supplier', 'orderItems', 'purchaseOrderItems', 'transactions'],
     });
   }
 

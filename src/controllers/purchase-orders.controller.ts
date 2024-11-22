@@ -13,6 +13,7 @@ import {
 } from '@nestjs/common';
 import { PurchaseOrdersService } from '../services/purchase-orders.service';
 import { PurchaseOrder } from '../entities/purchase-orders.entity';
+import { Roles } from '../decorators/roles.decorator';
 
 @Controller('purchase-orders')
 export class PurchaseOrdersController {
@@ -35,16 +36,27 @@ export class PurchaseOrdersController {
     @Query('startDate') startDate: string,
     @Query('endDate') endDate: string,
   ): Promise<PurchaseOrder[]> {
+    const parsedStartDate = new Date(startDate);
+    const parsedEndDate = new Date(endDate);
+
+    if (isNaN(parsedStartDate.getTime()) || isNaN(parsedEndDate.getTime())) {
+      throw new HttpException('Invalid date format', HttpStatus.BAD_REQUEST);
+    }
+
     return this.purchaseOrdersService.findByDateRange(
-      new Date(startDate),
-      new Date(endDate),
+      parsedStartDate,
+      parsedEndDate,
     );
   }
 
   @Get('status/:status')
+  @Roles('admin', 'purchase-manager', 'user')
   async findByStatus(
-    @Param('status') status: string,
+    @Param('status') status: 'Pending' | 'Completed' | 'Cancelled'
   ): Promise<PurchaseOrder[]> {
+    if (!['Pending', 'Completed', 'Cancelled'].includes(status)) {
+      throw new HttpException('Invalid status', HttpStatus.BAD_REQUEST);
+    }
     return this.purchaseOrdersService.findByStatus(status);
   }
 
@@ -92,10 +104,14 @@ export class PurchaseOrdersController {
   }
 
   @Patch(':id/status')
+  @Roles('admin', 'purchase-manager')
   async updateStatus(
     @Param('id') id: string,
-    @Body('status') status: string,
+    @Body('status') status: 'Pending' | 'Completed' | 'Cancelled'
   ): Promise<PurchaseOrder> {
+    if (!['Pending', 'Completed', 'Cancelled'].includes(status)) {
+      throw new HttpException('Invalid status', HttpStatus.BAD_REQUEST);
+    }
     return this.purchaseOrdersService.updateStatus(+id, status);
   }
 

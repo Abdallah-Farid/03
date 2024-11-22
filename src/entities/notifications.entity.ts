@@ -1,28 +1,49 @@
-import {
-  Entity,
-  PrimaryGeneratedColumn,
-  Column,
-  ManyToOne,
-  CreateDateColumn,
-  JoinColumn,
-} from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne, CreateDateColumn, UpdateDateColumn } from 'typeorm';
 import { User } from './users.entity';
 
-@Entity('notifications')
+export enum NotificationType {
+  SYSTEM = 'SYSTEM',
+  LOW_STOCK = 'LOW_STOCK',
+  ORDER_STATUS = 'ORDER_STATUS',
+  DELIVERY = 'DELIVERY',
+  ALERT = 'ALERT',
+}
+
+export enum NotificationPriority {
+  LOW = 'LOW',
+  MEDIUM = 'MEDIUM',
+  HIGH = 'HIGH',
+}
+
+@Entity()
 export class Notification {
-  @PrimaryGeneratedColumn({ type: 'bigint' })
+  @PrimaryGeneratedColumn()
   id: number;
 
-  @ManyToOne(() => User, (user) => user.notifications)
-  @JoinColumn({ name: 'user_id' })
-  user: User;
+  @Column()
+  title: string;
 
-  @Column({ type: 'text' })
+  @Column()
   message: string;
 
-  @Column({ type: 'boolean', name: 'is_read', default: false })
+  @Column({ type: 'enum', enum: NotificationType, default: NotificationType.SYSTEM })
+  type: NotificationType;
+
+  @Column({ type: 'enum', enum: NotificationPriority, default: NotificationPriority.MEDIUM })
+  priority: NotificationPriority;
+
+  @Column({ default: false })
   isRead: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @ManyToOne(() => User, user => user.notifications)
+  user: User;
+
+  @Column()
+  userId: number;
+
+  @CreateDateColumn()
   createdAt: Date;
+
+  @UpdateDateColumn()
+  updatedAt: Date;
 }

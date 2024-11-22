@@ -82,13 +82,22 @@ export class PurchaseOrderItemsService {
     return purchaseOrderItem.quantity * purchaseOrderItem.unitPrice;
   }
 
+  async findByPendingOrder(): Promise<PurchaseOrderItem[]> {
+    return this.purchaseOrderItemRepository.find({
+      where: {
+        purchaseOrder: { status: 'Pending' },
+      },
+      relations: ['purchaseOrder', 'inventoryItem'],
+    });
+  }
+
   async findPendingItemsByInventoryItem(
     itemId: number,
   ): Promise<PurchaseOrderItem[]> {
     return this.purchaseOrderItemRepository.find({
       where: {
         inventoryItem: { id: itemId },
-        purchaseOrder: { status: 'PENDING' },
+        purchaseOrder: { status: 'Pending' },
       },
       relations: ['purchaseOrder', 'inventoryItem'],
     });
